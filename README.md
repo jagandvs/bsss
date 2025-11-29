@@ -157,9 +157,20 @@ The built files will be in the `dist` directory, ready for deployment to platfor
 
 ### Netlify
 
-1. Build the project: `npm run build`
-2. Deploy the `dist` folder to Netlify
-3. Add environment variables in Netlify dashboard
+1. **Option 1: Deploy via Netlify Dashboard**
+   - Build the project: `npm run build`
+   - Drag and drop the `dist` folder to Netlify
+   - Add environment variables in Netlify dashboard (Site settings → Environment variables)
+   - The `_redirects` file and `netlify.toml` are already configured for SPA routing
+
+2. **Option 2: Deploy via Git**
+   - Connect your Git repository to Netlify
+   - Set build command: `npm run build`
+   - Set publish directory: `dist`
+   - Add environment variables in Netlify dashboard
+   - Netlify will automatically use the `netlify.toml` configuration
+
+**Important**: The `_redirects` file and `netlify.toml` ensure that all routes (like `/login`, `/list`, etc.) work correctly when refreshing the page. This fixes the "404 Not Found" error on direct navigation or page refresh.
 
 ### Vercel
 
