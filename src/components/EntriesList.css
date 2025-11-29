@@ -1,0 +1,229 @@
+.entries-list-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.list-header h1 {
+  margin: 0;
+  color: #333;
+}
+
+.user-email {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #666;
+  font-weight: normal;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-section {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.search-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.search-field-select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.results-count {
+  color: #666;
+  font-size: 14px;
+}
+
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+.profiles-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.profiles-table thead {
+  background-color: #f5f5f5;
+}
+
+.profiles-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+}
+
+.profiles-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.profiles-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.btn-view,
+.btn-edit,
+.btn-delete,
+.btn-print {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.btn-view {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.btn-view:hover {
+  background-color: #138496;
+}
+
+.btn-edit {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.btn-edit:hover {
+  background-color: #e0a800;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover {
+  background-color: #c82333;
+}
+
+.btn-print {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-print:hover {
+  background-color: #218838;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #646cff;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #535bf2;
+}
+
+.btn-print-all {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #28a745;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.btn-print-all:hover {
+  background-color: #218838;
+}
+
+.btn-create-user {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #17a2b8;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.btn-create-user:hover {
+  background-color: #138496;
+}
+
+.btn-logout {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #dc3545;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.btn-logout:hover {
+  background-color: #c82333;
+}
+

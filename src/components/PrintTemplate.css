@@ -1,0 +1,244 @@
+.print-template-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.print-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.btn-print-action,
+.btn-download-pdf {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-print-action {
+  background-color: #646cff;
+  color: white;
+}
+
+.btn-print-action:hover {
+  background-color: #535bf2;
+}
+
+.btn-download-pdf {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-download-pdf:hover {
+  background-color: #218838;
+}
+
+.print-content {
+  background: white;
+  padding: 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: 'Times New Roman', serif;
+  color: #000;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.print-header-section {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #000;
+}
+
+.print-header-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #dc3545;
+  font-family: 'Noto Sans Telugu', 'Gidugu', 'Pothana2000', sans-serif;
+  line-height: 1.4;
+}
+
+.print-body {
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 0;
+}
+
+.print-footer-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #000;
+  text-align: center;
+}
+
+.page-number {
+  font-size: 12px;
+  color: #000;
+}
+
+.profile-table {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto 20px auto;
+  border-collapse: collapse;
+  border: 1px solid #000;
+}
+
+.profile-table tbody tr {
+  border-bottom: 1px solid #000;
+}
+
+.profile-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.label-cell {
+  width: 35%;
+  padding: 4px 8px;
+  font-weight: 600;
+  vertical-align: top;
+  background-color: #f9f9f9;
+  border-right: 1px solid #000;
+  border-left: 1px solid #000;
+}
+
+.profile-table tbody tr:first-child .label-cell {
+  border-top: 1px solid #000;
+}
+
+.profile-table tbody tr:first-child .value-cell {
+  border-top: 1px solid #000;
+}
+
+.value-cell {
+  width: 65%;
+  padding: 4px 8px;
+  vertical-align: top;
+  border-right: 1px solid #000;
+}
+
+/* Print-specific styles */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm 20mm;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  .print-template-container {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .print-actions {
+    display: none;
+  }
+
+  .print-content {
+    padding: 0;
+    box-shadow: none;
+    page-break-after: always;
+    position: relative;
+    height: calc(100vh - 30mm);
+    min-height: calc(100vh - 30mm);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .print-header-section {
+    position: relative;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #000;
+    flex-shrink: 0;
+  }
+
+  .print-header-title {
+    font-size: 32px;
+    color: #dc3545;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-body {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .print-footer-section {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #000;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .profile-table {
+    font-size: 12px;
+    border: 1px solid #000;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .label-cell,
+  .value-cell {
+    padding: 3px 6px;
+  }
+
+  .label-cell {
+    border-right: 1px solid #000;
+    border-left: 1px solid #000;
+  }
+
+  .value-cell {
+    border-right: 1px solid #000;
+  }
+
+  .profile-table tbody tr {
+    border-bottom: 1px solid #000;
+  }
+
+  .profile-table tbody tr:first-child .label-cell,
+  .profile-table tbody tr:first-child .value-cell {
+    border-top: 1px solid #000;
+  }
+
+  /* Ensure table doesn't break across pages */
+  .profile-table tbody tr {
+    page-break-inside: avoid;
+  }
+
+  /* Remove any background colors for printing */
+  .label-cell {
+    background-color: transparent;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* Screen-only styles */
+@media screen {
+  .print-content {
+    min-height: 297mm; /* A4 height */
+  }
+}
+
