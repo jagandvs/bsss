@@ -5,7 +5,6 @@ import type { Profile } from '../types';
 import './FormEntry.css';
 
 const initialFormData: Omit<Profile, 'id' | 'createdAt' | 'updatedAt'> = {
-  username: '',
   gender: '',
   sect: '',
   subsect: '',
@@ -36,6 +35,27 @@ const initialFormData: Omit<Profile, 'id' | 'createdAt' | 'updatedAt'> = {
   email: '',
 };
 
+function parseDateLoose(input: string): Date | null {
+  const s = (input || '').trim();
+  if (!s) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const d = new Date(`${s}T00:00:00`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function computeAgeYears(dobRaw: string): number | null {
+  const d = parseDateLoose(dobRaw);
+  if (!d) return null;
+  const today = new Date();
+  let age = today.getFullYear() - d.getFullYear();
+  const m = today.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age -= 1;
+  return age >= 0 && age <= 120 ? age : null;
+}
+
 export default function FormEntry() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -65,13 +85,26 @@ export default function FormEntry() {
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    }
     if (!formData.mobile.trim()) {
       newErrors.mobile = 'Mobile number is required';
     } else if (!/^\d{10}$/.test(formData.mobile.replace(/\D/g, ''))) {
       newErrors.mobile = 'Mobile number must be 10 digits';
+    }
+
+    if (formData.dob.trim()) {
+      const d = parseDateLoose(formData.dob);
+      if (!d) {
+        newErrors.dob = 'Please select a valid date';
+      } else {
+        const today = new Date();
+        if (d.getTime() > today.getTime()) newErrors.dob = 'Date of birth cannot be in the future';
+      }
+    }
+
+    if (formData.tob.trim()) {
+      if (!/^\d{2}:\d{2}$/.test(formData.tob.trim())) {
+        newErrors.tob = 'Please select a valid time';
+      }
     }
 
     setErrors(newErrors);
@@ -132,18 +165,8 @@ export default function FormEntry() {
           <h2>Basic Information</h2>
           <div className="form-grid">
             <div className="form-field">
-              <label htmlFor="username">
-                Username <span className="required">*</span>
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                value={formData.username}
-                onChange={handleChange}
-                className={errors.username ? 'error' : ''}
-              />
-              {errors.username && <span className="error-message">{errors.username}</span>}
+              <label>Reg No</label>
+              <input value={id || 'Auto generated after save'} readOnly />
             </div>
             <div className="form-field">
               <label htmlFor="gender">Gender</label>
@@ -173,11 +196,27 @@ export default function FormEntry() {
             </div>
             <div className="form-field">
               <label htmlFor="dob">Date of Birth</label>
-              <input id="dob" name="dob" type="text" value={formData.dob} onChange={handleChange} placeholder="e.g., 1997-08-14" />
+              <input
+                id="dob"
+                name="dob"
+                type="date"
+                value={formData.dob}
+                onChange={handleChange}
+                className={errors.dob ? 'error' : ''}
+              />
+              {errors.dob && <span className="error-message">{errors.dob}</span>}
             </div>
             <div className="form-field">
               <label htmlFor="tob">Time of Birth</label>
-              <input id="tob" name="tob" type="text" value={formData.tob} onChange={handleChange} placeholder="e.g., 1:35 AM" />
+              <input
+                id="tob"
+                name="tob"
+                type="time"
+                value={formData.tob}
+                onChange={handleChange}
+                className={errors.tob ? 'error' : ''}
+              />
+              {errors.tob && <span className="error-message">{errors.tob}</span>}
             </div>
             <div className="form-field">
               <label htmlFor="pob">Place of Birth</label>
@@ -192,7 +231,7 @@ export default function FormEntry() {
               <input id="padam" name="padam" type="text" value={formData.padam} onChange={handleChange} />
             </div>
             <div className="form-field">
-              <label htmlFor="padam_colour">Padam Colour</label>
+              <label htmlFor="padam_colour">Colour</label>
               <input id="padam_colour" name="padam_colour" type="text" value={formData.padam_colour} onChange={handleChange} />
             </div>
             <div className="form-field">
@@ -217,6 +256,10 @@ export default function FormEntry() {
         <div className="form-section">
           <h2>Personal Details</h2>
           <div className="form-grid">
+            <div className="form-field">
+              <label>Age</label>
+              <input value={computeAgeYears(formData.dob) ?? ''} readOnly />
+            </div>
             <div className="form-field">
               <label htmlFor="surname">Surname</label>
               <input id="surname" name="surname" type="text" value={formData.surname} onChange={handleChange} />

@@ -1,6 +1,10 @@
 export interface Profile {
   id?: string;
-  username: string;
+  /**
+   * Legacy field (kept for backward compatibility with existing stored docs).
+   * New profiles should use `id` as the Registration Number (Reg No).
+   */
+  username?: string;
   gender?: 'Male' | 'Female' | '';
   // Details Section
   sect: string;

@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import type { Profile } from '../types';
 import './PrintTemplate.css';
+import { downloadProfileDocx } from '../utils/docxExport';
 
 interface PrintTemplateProps {
   profile: Profile;
@@ -9,6 +10,20 @@ interface PrintTemplateProps {
 
 export default function PrintTemplate({ profile, onPrint }: PrintTemplateProps) {
   const printRef = useRef<HTMLDivElement>(null);
+  const regNo = profile.id || '-';
+
+  const computeAgeYears = (dobRaw: string): string => {
+    const s = (dobRaw || '').trim();
+    if (!s) return '-';
+    const d = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(`${s}T00:00:00`) : new Date(s);
+    if (Number.isNaN(d.getTime())) return '-';
+    const today = new Date();
+    let age = today.getFullYear() - d.getFullYear();
+    const m = today.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age -= 1;
+    if (age < 0 || age > 120) return '-';
+    return String(age);
+  };
 
   const handlePrint = () => {
     if (onPrint) {
@@ -25,7 +40,7 @@ export default function PrintTemplate({ profile, onPrint }: PrintTemplateProps) 
       const html2pdf = (await import('html2pdf.js')).default;
       const opt = {
         margin: [10, 10, 10, 10] as [number, number, number, number],
-        filename: `${profile.username || 'profile'}.pdf`,
+        filename: `${profile.id || 'profile'}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
@@ -34,6 +49,15 @@ export default function PrintTemplate({ profile, onPrint }: PrintTemplateProps) 
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please use the Print button instead.');
+    }
+  };
+
+  const handleDownloadWord = async () => {
+    try {
+      await downloadProfileDocx(profile, `${profile.id || 'profile'}.docx`);
+    } catch (error) {
+      console.error('Error generating Word file:', error);
+      alert('Failed to generate Word file.');
     }
   };
 
@@ -46,6 +70,9 @@ export default function PrintTemplate({ profile, onPrint }: PrintTemplateProps) 
         <button onClick={handleDownloadPDF} className="btn-download-pdf">
           Download as PDF
         </button>
+        <button onClick={handleDownloadWord} className="btn-download-docx">
+          Download as Word
+        </button>
       </div>
 
       <div ref={printRef} className="print-content">
@@ -56,14 +83,14 @@ export default function PrintTemplate({ profile, onPrint }: PrintTemplateProps) 
           <table className="profile-table">
             <thead>
               <tr>
-                <th className="username-col">Username</th>
+                <th className="username-col">Reg No</th>
                 <th className="details-col">Details</th>
                 <th className="personal-col">Personal Details</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td className="username-cell" rowSpan={26}>{profile.username || '-'}</td>
+                <td className="username-cell" rowSpan={28}>{regNo}</td>
                 <td className="details-label">Sect</td>
                 <td className="personal-label">Surname</td>
               </tr>
@@ -81,10 +108,18 @@ export default function PrintTemplate({ profile, onPrint }: PrintTemplateProps) 
               </tr>
               <tr>
                 <td className="details-label">Gothram</td>
-                <td className="personal-label">Marital Status</td>
+                <td className="personal-label">Age</td>
               </tr>
               <tr>
                 <td className="details-value">{profile.gothram || '-'}</td>
+                <td className="personal-value">{computeAgeYears(profile.dob)}</td>
+              </tr>
+              <tr>
+                <td className="details-label"></td>
+                <td className="personal-label">Marital Status</td>
+              </tr>
+              <tr>
+                <td className="details-value"></td>
                 <td className="personal-value">{profile.marital_status || '-'}</td>
               </tr>
               <tr>
@@ -128,7 +163,7 @@ export default function PrintTemplate({ profile, onPrint }: PrintTemplateProps) 
                 <td className="personal-value">{profile.country_of_work || '-'}</td>
               </tr>
               <tr>
-                <td className="details-label">Padam Colour</td>
+                <td className="details-label">Colour</td>
                 <td className="personal-label">Salary Per Anum</td>
               </tr>
               <tr>

@@ -12,7 +12,7 @@ export default function EntriesList() {
   const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchField, setSearchField] = useState<'username' | 'name' | 'pob' | 'gothram'>('username');
+  const [searchField, setSearchField] = useState<'regNo' | 'name' | 'pob' | 'gothram'>('regNo');
 
   useEffect(() => {
     loadProfiles();
@@ -44,7 +44,10 @@ export default function EntriesList() {
 
     const term = searchTerm.toLowerCase();
     const filtered = profiles.filter(profile => {
-      const value = profile[searchField]?.toLowerCase() || '';
+      const value =
+        searchField === 'regNo'
+          ? (profile.id || '').toLowerCase()
+          : (profile[searchField]?.toLowerCase() || '');
       return value.includes(term);
     });
     setFilteredProfiles(filtered);
@@ -119,7 +122,7 @@ export default function EntriesList() {
             onChange={(e) => setSearchField(e.target.value as any)}
             className="search-field-select"
           >
-            <option value="username">Username</option>
+            <option value="regNo">Reg No</option>
             <option value="name">Name</option>
             <option value="pob">Place of Birth</option>
             <option value="gothram">Gothram</option>
@@ -146,7 +149,7 @@ export default function EntriesList() {
           <table className="profiles-table">
             <thead>
               <tr>
-                <th>Username</th>
+                <th>Reg No</th>
                 <th>Name</th>
                 <th>DOB</th>
                 <th>POB</th>
@@ -158,7 +161,7 @@ export default function EntriesList() {
             <tbody>
               {filteredProfiles.map((profile) => (
                 <tr key={profile.id}>
-                  <td>{profile.username}</td>
+                  <td>{profile.id || '-'}</td>
                   <td>{profile.surname ? `${profile.surname} ${profile.name}`.trim() : profile.name || '-'}</td>
                   <td>{profile.dob || '-'}</td>
                   <td>{profile.pob || '-'}</td>
@@ -181,7 +184,7 @@ export default function EntriesList() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(profile.id!, profile.name || profile.username)}
+                        onClick={() => handleDelete(profile.id!, profile.name || profile.surname || profile.id || 'this profile')}
                         className="btn-delete"
                         title="Delete"
                       >

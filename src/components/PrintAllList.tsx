@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { firestoreService } from '../services/firestoreService';
 import type { Profile } from '../types';
 import './PrintAllList.css';
+import { downloadProfilesListDocx } from '../utils/docxExport';
 
 function formatDobForCell(dobRaw: string): string[] {
   const s = (dobRaw || '').trim();
@@ -36,39 +37,60 @@ function normalizeGender(g: Profile['gender'] | undefined): 'Male' | 'Female' | 
   return 'Unknown';
 }
 
-function formatDetails(profile: Profile, serialNo: number): string {
+function computeAgeYears(dobRaw: string): string {
+  const s = (dobRaw || '').trim();
+  if (!s) return '';
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(`${s}T00:00:00`) : new Date(s);
+  if (Number.isNaN(d.getTime())) return '';
+  const today = new Date();
+  let age = today.getFullYear() - d.getFullYear();
+  const m = today.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age -= 1;
+  if (age < 0 || age > 120) return '';
+  return String(age);
+}
+
+type DetailLine = { label: string; value: string };
+
+function formatDetails(profile: Profile, regNo: number): DetailLine[] {
   const fullName = [profile.surname, profile.name].filter(Boolean).join(' ').trim();
-  const chunks: string[] = [];
+  const lines: DetailLine[] = [];
 
-  if (fullName) chunks.push(`Name: ${fullName}`);
-  chunks.push(`S. No. ${serialNo}`);
+  // Reg No should always come first (number-only)
+  lines.push({ label: 'Reg No', value: String(regNo) });
+  if (fullName) lines.push({ label: 'Name', value: fullName });
 
-  if (profile.sect?.trim()) chunks.push(`Sect: ${profile.sect.trim()}`);
-  if (profile.subsect?.trim()) chunks.push(`Sub-Sect: ${profile.subsect.trim()}`);
-  if (profile.gothram?.trim()) chunks.push(`Gothram: ${profile.gothram.trim()}`);
+  if (profile.sect?.trim()) lines.push({ label: 'Sect', value: profile.sect.trim() });
+  if (profile.subsect?.trim()) lines.push({ label: 'Sub-Sect', value: profile.subsect.trim() });
+  if (profile.gothram?.trim()) lines.push({ label: 'Gothram', value: profile.gothram.trim() });
 
-  if (profile.dob?.trim()) chunks.push(`DOB: ${profile.dob.trim()}`);
-  if (profile.tob?.trim()) chunks.push(`TOB: ${profile.tob.trim()}`);
-  if (profile.pob?.trim()) chunks.push(`POB: ${profile.pob.trim()}`);
+  if (profile.dob?.trim()) lines.push({ label: 'DOB', value: profile.dob.trim() });
+  if (profile.tob?.trim()) lines.push({ label: 'TOB', value: profile.tob.trim() });
+  if (profile.pob?.trim()) lines.push({ label: 'POB', value: profile.pob.trim() });
 
   if (profile.star?.trim() || profile.padam?.trim()) {
     const sp = [profile.star?.trim(), profile.padam?.trim()].filter(Boolean).join(' ');
-    if (sp) chunks.push(`Star/Padam: ${sp}`);
+    if (sp) lines.push({ label: 'Star/Padam', value: sp });
   }
-  if (profile.padam_colour?.trim()) chunks.push(`Colour: ${profile.padam_colour.trim()}`);
-  if (profile.height_in_cm?.trim()) chunks.push(`Height: ${profile.height_in_cm.trim()}`);
-  if (profile.marital_status?.trim()) chunks.push(`Marital Status: ${profile.marital_status.trim()}`);
+  if (profile.padam_colour?.trim()) lines.push({ label: 'Colour', value: profile.padam_colour.trim() });
+  if (profile.height_in_cm?.trim()) lines.push({ label: 'Height', value: profile.height_in_cm.trim() });
+  if (profile.marital_status?.trim()) lines.push({ label: 'Marital Status', value: profile.marital_status.trim() });
 
-  if (profile.qualification?.trim()) chunks.push(`Educational Qualifications: ${profile.qualification.trim()}`);
+  {
+    const age = computeAgeYears(profile.dob);
+    if (age) lines.push({ label: 'Age', value: age });
+  }
+
+  if (profile.qualification?.trim()) lines.push({ label: 'Educational Qualifications', value: profile.qualification.trim() });
   {
     const jobBits = [profile.designation, profile.organisation, profile.place_of_work, profile.country_of_work]
       .map(v => (v || '').trim())
       .filter(Boolean);
-    if (jobBits.length) chunks.push(`Employment Details: ${jobBits.join(', ')}`);
+    if (jobBits.length) lines.push({ label: 'Employment Details', value: jobBits.join(', ') });
   }
-  if (profile.salary_per_anum?.trim()) chunks.push(`Salary: ${profile.salary_per_anum.trim()}`);
+  if (profile.salary_per_anum?.trim()) lines.push({ label: 'Salary', value: profile.salary_per_anum.trim() });
 
-  if (profile.father_name?.trim()) chunks.push(`Father's Name: ${profile.father_name.trim()}`);
+  if (profile.father_name?.trim()) lines.push({ label: "Father's Name", value: profile.father_name.trim() });
 
   // Requirements (only include if any are present)
   {
@@ -77,18 +99,21 @@ function formatDetails(profile: Profile, serialNo: number): string {
       profile.required_job?.trim() ? `Job: ${profile.required_job.trim()}` : '',
       profile.required_marital_status?.trim() ? `Marital Status: ${profile.required_marital_status.trim()}` : '',
     ].filter(Boolean);
-    if (reqBits.length) chunks.push(`Requirements: ${reqBits.join('; ')}`);
+    if (reqBits.length) lines.push({ label: 'Requirements', value: reqBits.join('; ') });
   }
 
-  if (profile.address?.trim()) chunks.push(`Address: ${profile.address.trim()}`);
+  if (profile.address?.trim()) lines.push({ label: 'Address', value: profile.address.trim() });
 
   {
-    const contactBits = [profile.mobile?.trim() ? `Mobile: ${profile.mobile.trim()}` : '', profile.whatsapp?.trim() ? `WhatsApp: ${profile.whatsapp.trim()}` : '', profile.email?.trim() ? `E-Mail: ${profile.email.trim()}` : ''].filter(Boolean);
-    if (contactBits.length) chunks.push(contactBits.join('; '));
+    const contactBits = [
+      profile.mobile?.trim() ? `Mobile: ${profile.mobile.trim()}` : '',
+      profile.whatsapp?.trim() ? `WhatsApp: ${profile.whatsapp.trim()}` : '',
+      profile.email?.trim() ? `E-Mail: ${profile.email.trim()}` : '',
+    ].filter(Boolean);
+    if (contactBits.length) lines.push({ label: 'Contact', value: contactBits.join('; ') });
   }
 
-  // Continuous flowing text (no forced line breaks)
-  return chunks.join('. ') + '.';
+  return lines;
 }
 
 export default function PrintAllList() {
@@ -118,11 +143,11 @@ export default function PrintAllList() {
     const enriched = profiles.map((p, idx) => {
       const [dobTop, dobBottom] = formatDobForCell(p.dob);
       return {
-        key: p.id ?? `${p.username}-${idx}`,
+        key: p.id ?? `${idx}`,
         genderGroup: normalizeGender(p.gender),
         dobTop,
         dobBottom,
-        details: formatDetails(p, idx + 1),
+        profile: p,
       };
     });
 
@@ -130,12 +155,15 @@ export default function PrintAllList() {
     const women = enriched.filter(r => r.genderGroup === 'Female');
     const unknown = enriched.filter(r => r.genderGroup === 'Unknown');
 
-    // Renumber S. No. based on print order (Men -> Women -> Unknown)
-    const ordered = [...men, ...women, ...unknown].map((r, i) => ({
-      ...r,
-      serialNo: i + 1,
-      details: r.details.replace(/S\. No\. \d+/, `S. No. ${i + 1}`),
-    }));
+    // Number-only Reg No in print order (Men -> Women -> Unknown)
+    const ordered = [...men, ...women, ...unknown].map((r, i) => {
+      const regNo = i + 1;
+      return {
+        ...r,
+        regNo,
+        details: formatDetails(r.profile, regNo),
+      };
+    });
 
     return {
       men: ordered.filter(r => r.genderGroup === 'Male'),
@@ -161,6 +189,15 @@ export default function PrintAllList() {
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please use the Print button instead.');
+    }
+  };
+
+  const handleDownloadWord = async () => {
+    try {
+      await downloadProfilesListDocx(profiles, 'profiles-list.docx');
+    } catch (error) {
+      console.error('Error generating Word file:', error);
+      alert('Failed to generate Word file.');
     }
   };
 
@@ -191,6 +228,9 @@ export default function PrintAllList() {
         <button onClick={handleDownloadPDF} className="btn-download-pdf">
           Download as PDF
         </button>
+        <button onClick={handleDownloadWord} className="btn-download-docx">
+          Download as Word
+        </button>
       </div>
 
       <div ref={printRef} className="print-content">
@@ -200,7 +240,7 @@ export default function PrintAllList() {
 
         <div className="list-grid" role="table" aria-label="Profiles list print">
           <div className="grid-row grid-header" role="row">
-            <div className="grid-cell col-serial cell-serial" role="columnheader">S.No</div>
+            <div className="grid-cell col-serial cell-serial" role="columnheader">Reg No</div>
             <div className="grid-cell col-dob cell-dob" role="columnheader">DOB</div>
             <div className="grid-cell col-details cell-details" role="columnheader">Details</div>
           </div>
@@ -212,13 +252,20 @@ export default function PrintAllList() {
           )}
           {rows.men.map((r) => (
             <div key={r.key} className="grid-row" role="row">
-              <div className="grid-cell col-serial cell-serial" role="cell">{r.serialNo}</div>
+              <div className="grid-cell col-serial cell-serial" role="cell">{r.regNo}</div>
               <div className="grid-cell col-dob cell-dob" role="cell">
                 <div className="dob-top">{r.dobTop}</div>
                 <div className="dob-bottom">{r.dobBottom}</div>
               </div>
               <div className="grid-cell col-details cell-details" role="cell">
-                <div className="details-text">{r.details}</div>
+                <div className="details-text">
+                  {r.details.map((line, i) => (
+                    <span key={`${line.label}-${i}`}>
+                      <strong>{line.label}:</strong> {line.value}
+                      {i < r.details.length - 1 ? '. ' : '.'}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
@@ -230,13 +277,20 @@ export default function PrintAllList() {
           )}
           {rows.women.map((r) => (
             <div key={r.key} className="grid-row" role="row">
-              <div className="grid-cell col-serial cell-serial" role="cell">{r.serialNo}</div>
+              <div className="grid-cell col-serial cell-serial" role="cell">{r.regNo}</div>
               <div className="grid-cell col-dob cell-dob" role="cell">
                 <div className="dob-top">{r.dobTop}</div>
                 <div className="dob-bottom">{r.dobBottom}</div>
               </div>
               <div className="grid-cell col-details cell-details" role="cell">
-                <div className="details-text">{r.details}</div>
+                <div className="details-text">
+                  {r.details.map((line, i) => (
+                    <span key={`${line.label}-${i}`}>
+                      <strong>{line.label}:</strong> {line.value}
+                      {i < r.details.length - 1 ? '. ' : '.'}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
@@ -248,13 +302,20 @@ export default function PrintAllList() {
           )}
           {rows.unknown.map((r) => (
             <div key={r.key} className="grid-row" role="row">
-              <div className="grid-cell col-serial cell-serial" role="cell">{r.serialNo}</div>
+              <div className="grid-cell col-serial cell-serial" role="cell">{r.regNo}</div>
               <div className="grid-cell col-dob cell-dob" role="cell">
                 <div className="dob-top">{r.dobTop}</div>
                 <div className="dob-bottom">{r.dobBottom}</div>
               </div>
               <div className="grid-cell col-details cell-details" role="cell">
-                <div className="details-text">{r.details}</div>
+                <div className="details-text">
+                  {r.details.map((line, i) => (
+                    <span key={`${line.label}-${i}`}>
+                      <strong>{line.label}:</strong> {line.value}
+                      {i < r.details.length - 1 ? '. ' : '.'}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
