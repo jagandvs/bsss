@@ -1,28 +1,36 @@
 export interface Profile {
   id?: string;
-  regn_number: string;
-  gender: string;
-  full_name_with_surname: string;
-  sect_subsect: string;
+  username: string;
+  gender?: 'Male' | 'Female' | '';
+  // Details Section
+  sect: string;
+  subsect: string;
   gothram: string;
   dob: string;
   tob: string;
   pob: string;
-  star_padam: string;
-  height: string;
-  complexion: string;
-  educational_qualifications: string;
-  employment_details: string;
-  salary: string;
-  father_name: string;
-  mother_name: string;
-  siblings: string;
-  requirements_spouse: string;
-  subsect_bar_no_bar: string;
+  star: string;
+  padam: string;
+  padam_colour: string;
+  height_in_cm: string;
+  required_qualification: string;
+  required_job: string;
+  required_marital_status: string;
+  // Personal Details Section
+  surname: string;
+  name: string;
   marital_status: string;
-  any_other_details: string;
+  qualification: string;
+  designation: string;
+  organisation: string;
+  place_of_work: string;
+  country_of_work: string;
+  salary_per_anum: string;
+  father_name: string;
   address: string;
-  contact_no: string;
+  mobile: string;
+  whatsapp: string;
+  email: string;
   createdAt?: number;
   updatedAt?: number;
 }

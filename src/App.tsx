@@ -4,6 +4,7 @@ import FormEntry from './components/FormEntry';
 import EntriesList from './components/EntriesList';
 import EntryView from './components/EntryView';
 import PrintAll from './components/PrintAll';
+import PrintAllList from './components/PrintAllList';
 import Login from './components/Login';
 import CreateUser from './components/CreateUser';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -62,6 +63,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <PrintAll />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/print-all-list"
+              element={
+                <ProtectedRoute>
+                  <PrintAllList />
                 </ProtectedRoute>
               }
             />

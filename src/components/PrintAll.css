@@ -98,43 +98,61 @@
 
 .profile-table {
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto 20px auto;
+  max-width: 100%;
   border-collapse: collapse;
+  border: 2px solid #000;
+  margin: 0 auto 20px auto;
+}
+
+.profile-table thead th {
+  background-color: #f0f0f0;
+  border: 2px solid #000;
+  padding: 12px 8px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.username-col {
+  width: 15%;
+  vertical-align: middle;
+}
+
+.details-col {
+  width: 42.5%;
+}
+
+.personal-col {
+  width: 42.5%;
+}
+
+.profile-table tbody td {
+  border: 1px solid #000;
+  padding: 6px 8px;
+  font-size: 12px;
+  vertical-align: top;
+}
+
+.username-cell {
+  text-align: center;
+  font-weight: bold;
+  background-color: #f9f9f9;
+  vertical-align: middle;
   border: 1px solid #000;
 }
 
-.profile-table tbody tr {
-  border-bottom: 1px solid #000;
-}
-
-.profile-table tbody tr:last-child {
-  border-bottom: none;
-}
-
-.label-cell {
-  width: 35%;
-  padding: 4px 8px;
+.details-label,
+.personal-label {
+  background-color: #f5f5f5;
   font-weight: 600;
-  vertical-align: top;
-  background-color: #f9f9f9;
+  width: 40%;
   border-right: 1px solid #000;
-  border-left: 1px solid #000;
 }
 
-.profile-table tbody tr:first-child .label-cell {
-  border-top: 1px solid #000;
-}
-
-.profile-table tbody tr:first-child .value-cell {
-  border-top: 1px solid #000;
-}
-
-.value-cell {
-  width: 65%;
-  padding: 4px 8px;
-  vertical-align: top;
-  border-right: 1px solid #000;
+.details-value,
+.personal-value {
+  background-color: #ffffff;
+  width: 60%;
 }
 
 .loading,
@@ -208,42 +226,40 @@
   }
 
   .profile-table {
+    font-size: 11px;
+    border: 2px solid #000;
+    max-width: 100%;
+  }
+
+  .profile-table thead th {
     font-size: 12px;
+    padding: 8px 6px;
+    border: 2px solid #000;
+  }
+
+  .profile-table tbody td {
+    padding: 4px 6px;
+    font-size: 11px;
     border: 1px solid #000;
-    max-width: 800px;
-    margin: 0 auto;
   }
 
-  .label-cell,
-  .value-cell {
-    padding: 3px 6px;
+  .username-cell {
+    background-color: transparent;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
-  .label-cell {
-    border-right: 1px solid #000;
-    border-left: 1px solid #000;
-  }
-
-  .value-cell {
-    border-right: 1px solid #000;
+  .details-label,
+  .personal-label {
+    background-color: transparent;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   /* Ensure table doesn't break across pages */
   .profile-table tbody tr {
     page-break-inside: avoid;
     border-bottom: 1px solid #000;
-  }
-
-  .profile-table tbody tr:first-child .label-cell,
-  .profile-table tbody tr:first-child .value-cell {
-    border-top: 1px solid #000;
-  }
-
-  /* Remove any background colors for printing */
-  .label-cell {
-    background-color: transparent;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
   }
 }
 
@@ -253,4 +269,3 @@
     min-height: 297mm; /* A4 height */
   }
 }
-

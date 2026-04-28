@@ -25,7 +25,7 @@ export default function PrintTemplate({ profile, onPrint }: PrintTemplateProps) 
       const html2pdf = (await import('html2pdf.js')).default;
       const opt = {
         margin: [10, 10, 10, 10] as [number, number, number, number],
-        filename: `${profile.regn_number || 'profile'}.pdf`,
+        filename: `${profile.username || 'profile'}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
@@ -54,98 +54,128 @@ export default function PrintTemplate({ profile, onPrint }: PrintTemplateProps) 
         </div>
         <div className="print-body">
           <table className="profile-table">
+            <thead>
+              <tr>
+                <th className="username-col">Username</th>
+                <th className="details-col">Details</th>
+                <th className="personal-col">Personal Details</th>
+              </tr>
+            </thead>
             <tbody>
               <tr>
-                <td className="label-cell">Regn Number</td>
-                <td className="value-cell">{profile.regn_number || '-'}</td>
+                <td className="username-cell" rowSpan={26}>{profile.username || '-'}</td>
+                <td className="details-label">Sect</td>
+                <td className="personal-label">Surname</td>
               </tr>
               <tr>
-                <td className="label-cell">Gender</td>
-                <td className="value-cell">{profile.gender || '-'}</td>
+                <td className="details-value">{profile.sect || '-'}</td>
+                <td className="personal-value">{profile.surname || '-'}</td>
               </tr>
               <tr>
-                <td className="label-cell">Full Name (With surname)</td>
-                <td className="value-cell">{profile.full_name_with_surname || '-'}</td>
+                <td className="details-label">Subsect</td>
+                <td className="personal-label">Name</td>
               </tr>
               <tr>
-                <td className="label-cell">Sect /Subsect</td>
-                <td className="value-cell">{profile.sect_subsect || '-'}</td>
+                <td className="details-value">{profile.subsect || '-'}</td>
+                <td className="personal-value">{profile.name || '-'}</td>
               </tr>
               <tr>
-                <td className="label-cell">Gothram</td>
-                <td className="value-cell">{profile.gothram || '-'}</td>
+                <td className="details-label">Gothram</td>
+                <td className="personal-label">Marital Status</td>
               </tr>
               <tr>
-                <td className="label-cell">DOB</td>
-                <td className="value-cell">{profile.dob || '-'}</td>
+                <td className="details-value">{profile.gothram || '-'}</td>
+                <td className="personal-value">{profile.marital_status || '-'}</td>
               </tr>
               <tr>
-                <td className="label-cell">TOB</td>
-                <td className="value-cell">{profile.tob || '-'}</td>
+                <td className="details-label">Date of Birth</td>
+                <td className="personal-label">Qualification</td>
               </tr>
               <tr>
-                <td className="label-cell">POB</td>
-                <td className="value-cell">{profile.pob || '-'}</td>
+                <td className="details-value">{profile.dob || '-'}</td>
+                <td className="personal-value">{profile.qualification || '-'}</td>
               </tr>
               <tr>
-                <td className="label-cell">Star-Padam</td>
-                <td className="value-cell">{profile.star_padam || '-'}</td>
+                <td className="details-label">Time of Birth</td>
+                <td className="personal-label">Designation</td>
               </tr>
               <tr>
-                <td className="label-cell">Height</td>
-                <td className="value-cell">{profile.height || '-'}</td>
+                <td className="details-value">{profile.tob || '-'}</td>
+                <td className="personal-value">{profile.designation || '-'}</td>
               </tr>
               <tr>
-                <td className="label-cell">Complexion</td>
-                <td className="value-cell">{profile.complexion || '-'}</td>
+                <td className="details-label">Place of Birth</td>
+                <td className="personal-label">Organisation</td>
               </tr>
               <tr>
-                <td className="label-cell">Educational Qualifications</td>
-                <td className="value-cell">{profile.educational_qualifications || '-'}</td>
+                <td className="details-value">{profile.pob || '-'}</td>
+                <td className="personal-value">{profile.organisation || '-'}</td>
               </tr>
               <tr>
-                <td className="label-cell">Employment Details</td>
-                <td className="value-cell">{profile.employment_details || '-'}</td>
+                <td className="details-label">Star</td>
+                <td className="personal-label">Place of Work</td>
               </tr>
               <tr>
-                <td className="label-cell">Salary</td>
-                <td className="value-cell">{profile.salary || '-'}</td>
+                <td className="details-value">{profile.star || '-'}</td>
+                <td className="personal-value">{profile.place_of_work || '-'}</td>
               </tr>
               <tr>
-                <td className="label-cell">Father's Name</td>
-                <td className="value-cell">{profile.father_name || '-'}</td>
+                <td className="details-label">Padam</td>
+                <td className="personal-label">Country of Work</td>
               </tr>
               <tr>
-                <td className="label-cell">Mother's Name</td>
-                <td className="value-cell">{profile.mother_name || '-'}</td>
+                <td className="details-value">{profile.padam || '-'}</td>
+                <td className="personal-value">{profile.country_of_work || '-'}</td>
               </tr>
               <tr>
-                <td className="label-cell">Siblings</td>
-                <td className="value-cell">{profile.siblings || '-'}</td>
+                <td className="details-label">Padam Colour</td>
+                <td className="personal-label">Salary Per Anum</td>
               </tr>
               <tr>
-                <td className="label-cell">Requirements Spouse</td>
-                <td className="value-cell">{profile.requirements_spouse || '-'}</td>
+                <td className="details-value">{profile.padam_colour || '-'}</td>
+                <td className="personal-value">{profile.salary_per_anum || '-'}</td>
               </tr>
               <tr>
-                <td className="label-cell">Subsect bar/ No bar</td>
-                <td className="value-cell">{profile.subsect_bar_no_bar || '-'}</td>
+                <td className="details-label">Height in CM</td>
+                <td className="personal-label">Father Name</td>
               </tr>
               <tr>
-                <td className="label-cell">Marital status</td>
-                <td className="value-cell">{profile.marital_status || '-'}</td>
+                <td className="details-value">{profile.height_in_cm ? `${profile.height_in_cm} (Required)` : '-'}</td>
+                <td className="personal-value">{profile.father_name || '-'}</td>
               </tr>
               <tr>
-                <td className="label-cell">Any other details</td>
-                <td className="value-cell">{profile.any_other_details || '-'}</td>
+                <td className="details-label">Qualification</td>
+                <td className="personal-label">Address</td>
               </tr>
               <tr>
-                <td className="label-cell">Address</td>
-                <td className="value-cell">{profile.address || '-'}</td>
+                <td className="details-value">{profile.required_qualification || '-'}</td>
+                <td className="personal-value">{profile.address || '-'}</td>
               </tr>
               <tr>
-                <td className="label-cell">Contact No</td>
-                <td className="value-cell">{profile.contact_no || '-'}</td>
+                <td className="details-label">Job</td>
+                <td className="personal-label">Mobile</td>
+              </tr>
+              <tr>
+                <td className="details-value">{profile.required_job || '-'}</td>
+                <td className="personal-value">{profile.mobile || '-'}</td>
+              </tr>
+              <tr>
+                <td className="details-label">Marital Status</td>
+                <td className="personal-label">WhatsApp</td>
+              </tr>
+              <tr>
+                <td className="details-value">{profile.required_marital_status || '-'}</td>
+                <td className="personal-value">{profile.whatsapp || '-'}</td>
+              </tr>
+              <tr>
+                <td className="username-cell"></td>
+                <td className="details-label"></td>
+                <td className="personal-label">E-Mail</td>
+              </tr>
+              <tr>
+                <td className="username-cell"></td>
+                <td className="details-value"></td>
+                <td className="personal-value">{profile.email || '-'}</td>
               </tr>
             </tbody>
           </table>
@@ -157,4 +187,3 @@ export default function PrintTemplate({ profile, onPrint }: PrintTemplateProps) 
     </div>
   );
 }
-

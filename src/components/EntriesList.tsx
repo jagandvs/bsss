@@ -12,7 +12,7 @@ export default function EntriesList() {
   const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchField, setSearchField] = useState<'regn_number' | 'full_name_with_surname' | 'pob' | 'gothram'>('regn_number');
+  const [searchField, setSearchField] = useState<'username' | 'name' | 'pob' | 'gothram'>('username');
 
   useEffect(() => {
     loadProfiles();
@@ -97,6 +97,9 @@ export default function EntriesList() {
           <button onClick={() => navigate('/print-all')} className="btn-print-all">
             Print All
           </button>
+          <button onClick={() => navigate('/print-all-list')} className="btn-print-all">
+            Print List Format
+          </button>
           <button onClick={() => navigate('/form')} className="btn-primary">
             Create New Profile
           </button>
@@ -116,8 +119,8 @@ export default function EntriesList() {
             onChange={(e) => setSearchField(e.target.value as any)}
             className="search-field-select"
           >
-            <option value="regn_number">Registration Number</option>
-            <option value="full_name_with_surname">Full Name</option>
+            <option value="username">Username</option>
+            <option value="name">Name</option>
             <option value="pob">Place of Birth</option>
             <option value="gothram">Gothram</option>
           </select>
@@ -143,24 +146,24 @@ export default function EntriesList() {
           <table className="profiles-table">
             <thead>
               <tr>
-                <th>Regn Number</th>
-                <th>Full Name</th>
+                <th>Username</th>
+                <th>Name</th>
                 <th>DOB</th>
                 <th>POB</th>
                 <th>City</th>
-                <th>Contact No</th>
+                <th>Mobile</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredProfiles.map((profile) => (
                 <tr key={profile.id}>
-                  <td>{profile.regn_number}</td>
-                  <td>{profile.full_name_with_surname}</td>
+                  <td>{profile.username}</td>
+                  <td>{profile.surname ? `${profile.surname} ${profile.name}`.trim() : profile.name || '-'}</td>
                   <td>{profile.dob || '-'}</td>
                   <td>{profile.pob || '-'}</td>
                   <td>{extractCity(profile.address) || '-'}</td>
-                  <td>{profile.contact_no}</td>
+                  <td>{profile.mobile || '-'}</td>
                   <td>
                     <div className="action-buttons">
                       <button
@@ -178,7 +181,7 @@ export default function EntriesList() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(profile.id!, profile.full_name_with_surname)}
+                        onClick={() => handleDelete(profile.id!, profile.name || profile.username)}
                         className="btn-delete"
                         title="Delete"
                       >
