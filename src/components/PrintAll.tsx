@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { firestoreService } from '../services/firestoreService';
 import type { Profile } from '../types';
-import { getRegNoDisplay } from '../utils/printListUtils';
+import { getRegNoDisplay, formatTobForPrint } from '../utils/printListUtils';
 import './PrintAll.css';
 import { downloadProfilesDocx } from '../utils/docxExport';
 
@@ -54,7 +54,7 @@ const renderProfileTable = (profile: Profile) => (
         <td className="personal-label">Organisation</td>
       </tr>
       <tr>
-        <td className="details-value">{profile.tob || '-'}</td>
+        <td className="details-value">{formatTobForPrint(profile.tob)}</td>
         <td className="personal-value">{profile.organisation || '-'}</td>
       </tr>
       <tr>

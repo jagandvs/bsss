@@ -17,6 +17,7 @@ import {
   buildListPrintRows,
   formatListDetails,
   getRegNoDisplay,
+  formatTobForPrint,
   type ListPrintRow,
 } from './printListUtils';
 
@@ -66,7 +67,7 @@ function profileTable(profile: Profile, regNoText: string): Table {
     { label: 'Subsect', value: profile.subsect },
     { label: 'Gothram', value: profile.gothram },
     { label: 'Date of Birth', value: profile.dob },
-    { label: 'Time of Birth', value: profile.tob },
+    { label: 'Time of Birth', value: profile.tob ? formatTobForPrint(profile.tob) : '' },
     { label: 'Place of Birth', value: profile.pob },
     { label: 'Star', value: profile.star },
     { label: 'Padam', value: profile.padam },

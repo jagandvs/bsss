@@ -49,6 +49,29 @@ export function getRegNoDisplay(profile: Profile): string {
   return (profile.reg_no || '').trim() || '-';
 }
 
+export function formatTime12Hour(tobRaw: string): string {
+  const s = (tobRaw || '').trim();
+  if (!s) return '';
+
+  const match24 = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(s);
+  if (match24) {
+    let hours = parseInt(match24[1], 10);
+    const minutes = match24[2];
+    if (Number.isNaN(hours) || hours < 0 || hours > 23) return s;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    return `${hours}:${minutes} ${ampm}`;
+  }
+
+  return s;
+}
+
+export function formatTobForPrint(tobRaw: string): string {
+  const formatted = formatTime12Hour(tobRaw);
+  return formatted || '-';
+}
+
 export function formatListDetails(profile: Profile): DetailLine[] {
   const fullName = [profile.surname, profile.name].filter(Boolean).join(' ').trim();
   const regNo = getRegNoDisplay(profile);
@@ -61,7 +84,7 @@ export function formatListDetails(profile: Profile): DetailLine[] {
   if (profile.subsect?.trim()) lines.push({ label: 'Sub-Sect', value: profile.subsect.trim() });
   if (profile.gothram?.trim()) lines.push({ label: 'Gothram', value: profile.gothram.trim() });
   if (profile.dob?.trim()) lines.push({ label: 'DOB', value: profile.dob.trim() });
-  if (profile.tob?.trim()) lines.push({ label: 'TOB', value: profile.tob.trim() });
+  if (profile.tob?.trim()) lines.push({ label: 'TOB', value: formatTime12Hour(profile.tob) });
   if (profile.pob?.trim()) lines.push({ label: 'POB', value: profile.pob.trim() });
 
   if (profile.star?.trim() || profile.padam?.trim()) {

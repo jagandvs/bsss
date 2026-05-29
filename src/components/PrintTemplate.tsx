@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import type { Profile } from '../types';
-import { getRegNoDisplay } from '../utils/printListUtils';
+import { getRegNoDisplay, formatTobForPrint } from '../utils/printListUtils';
 import './PrintTemplate.css';
 import { downloadProfileDocx } from '../utils/docxExport';
 
@@ -115,7 +115,7 @@ export default function PrintTemplate({ profile, onPrint }: PrintTemplateProps) 
                 <td className="personal-label">Organisation</td>
               </tr>
               <tr>
-                <td className="details-value">{profile.tob || '-'}</td>
+                <td className="details-value">{formatTobForPrint(profile.tob)}</td>
                 <td className="personal-value">{profile.organisation || '-'}</td>
               </tr>
               <tr>
