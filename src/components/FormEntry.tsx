@@ -5,7 +5,9 @@ import type { Profile } from '../types';
 import './FormEntry.css';
 
 const initialFormData: Omit<Profile, 'id' | 'createdAt' | 'updatedAt'> = {
+  reg_no: '',
   gender: '',
+  divorced: false,
   sect: '',
   subsect: '',
   gothram: '',
@@ -17,22 +19,18 @@ const initialFormData: Omit<Profile, 'id' | 'createdAt' | 'updatedAt'> = {
   padam_colour: '',
   height_in_cm: '',
   required_qualification: '',
-  required_job: '',
-  required_marital_status: '',
   surname: '',
   name: '',
-  marital_status: '',
   qualification: '',
   designation: '',
   organisation: '',
   place_of_work: '',
-  country_of_work: '',
   salary_per_anum: '',
   father_name: '',
+  mother_name: '',
   address: '',
   mobile: '',
   whatsapp: '',
-  email: '',
 };
 
 function parseDateLoose(input: string): Date | null {
@@ -44,16 +42,6 @@ function parseDateLoose(input: string): Date | null {
   }
   const d = new Date(s);
   return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function computeAgeYears(dobRaw: string): number | null {
-  const d = parseDateLoose(dobRaw);
-  if (!d) return null;
-  const today = new Date();
-  let age = today.getFullYear() - d.getFullYear();
-  const m = today.getMonth() - d.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age -= 1;
-  return age >= 0 && age <= 120 ? age : null;
 }
 
 export default function FormEntry() {
@@ -74,8 +62,13 @@ export default function FormEntry() {
     try {
       const profile = await firestoreService.getProfileById(profileId);
       if (profile) {
-        const { id, createdAt, updatedAt, ...profileData } = profile;
-        setFormData(profileData);
+        const { id: _id, createdAt, updatedAt, ...profileData } = profile;
+        setFormData({
+          ...initialFormData,
+          ...profileData,
+          reg_no: profile.reg_no || '',
+          divorced: profile.divorced === true,
+        });
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to load profile' });
@@ -84,6 +77,10 @@ export default function FormEntry() {
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
+
+    if (!formData.reg_no.trim()) {
+      newErrors.reg_no = 'Registration number is required';
+    }
 
     if (!formData.mobile.trim()) {
       newErrors.mobile = 'Mobile number is required';
@@ -112,8 +109,12 @@ export default function FormEntry() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -165,8 +166,18 @@ export default function FormEntry() {
           <h2>Basic Information</h2>
           <div className="form-grid">
             <div className="form-field">
-              <label>Reg No</label>
-              <input value={id || 'Auto generated after save'} readOnly />
+              <label htmlFor="reg_no">
+                Reg No <span className="required">*</span>
+              </label>
+              <input
+                id="reg_no"
+                name="reg_no"
+                type="text"
+                value={formData.reg_no}
+                onChange={handleChange}
+                className={errors.reg_no ? 'error' : ''}
+              />
+              {errors.reg_no && <span className="error-message">{errors.reg_no}</span>}
             </div>
             <div className="form-field">
               <label htmlFor="gender">Gender</label>
@@ -175,6 +186,18 @@ export default function FormEntry() {
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
               </select>
+            </div>
+            <div className="form-field form-field-checkbox">
+              <label htmlFor="divorced" className="checkbox-label">
+                <input
+                  id="divorced"
+                  name="divorced"
+                  type="checkbox"
+                  checked={formData.divorced === true}
+                  onChange={handleChange}
+                />
+                Divorced
+              </label>
             </div>
           </div>
         </div>
@@ -238,17 +261,15 @@ export default function FormEntry() {
               <label htmlFor="height_in_cm">Height in CM</label>
               <input id="height_in_cm" name="height_in_cm" type="text" value={formData.height_in_cm} onChange={handleChange} />
             </div>
-            <div className="form-field">
+            <div className="form-field form-field-full">
               <label htmlFor="required_qualification">Required Qualification</label>
-              <input id="required_qualification" name="required_qualification" type="text" value={formData.required_qualification} onChange={handleChange} />
-            </div>
-            <div className="form-field">
-              <label htmlFor="required_job">Job</label>
-              <input id="required_job" name="required_job" type="text" value={formData.required_job} onChange={handleChange} />
-            </div>
-            <div className="form-field">
-              <label htmlFor="required_marital_status">Required Marital Status</label>
-              <input id="required_marital_status" name="required_marital_status" type="text" value={formData.required_marital_status} onChange={handleChange} />
+              <textarea
+                id="required_qualification"
+                name="required_qualification"
+                value={formData.required_qualification}
+                onChange={handleChange}
+                rows={3}
+              />
             </div>
           </div>
         </div>
@@ -257,20 +278,12 @@ export default function FormEntry() {
           <h2>Personal Details</h2>
           <div className="form-grid">
             <div className="form-field">
-              <label>Age</label>
-              <input value={computeAgeYears(formData.dob) ?? ''} readOnly />
-            </div>
-            <div className="form-field">
               <label htmlFor="surname">Surname</label>
               <input id="surname" name="surname" type="text" value={formData.surname} onChange={handleChange} />
             </div>
             <div className="form-field">
               <label htmlFor="name">Name</label>
               <input id="name" name="name" type="text" value={formData.name} onChange={handleChange} />
-            </div>
-            <div className="form-field">
-              <label htmlFor="marital_status">Marital Status</label>
-              <input id="marital_status" name="marital_status" type="text" value={formData.marital_status} onChange={handleChange} />
             </div>
             <div className="form-field">
               <label htmlFor="qualification">Qualification</label>
@@ -289,16 +302,16 @@ export default function FormEntry() {
               <input id="place_of_work" name="place_of_work" type="text" value={formData.place_of_work} onChange={handleChange} />
             </div>
             <div className="form-field">
-              <label htmlFor="country_of_work">Country of Work</label>
-              <input id="country_of_work" name="country_of_work" type="text" value={formData.country_of_work} onChange={handleChange} />
-            </div>
-            <div className="form-field">
               <label htmlFor="salary_per_anum">Salary Per Anum</label>
               <input id="salary_per_anum" name="salary_per_anum" type="text" value={formData.salary_per_anum} onChange={handleChange} />
             </div>
             <div className="form-field">
               <label htmlFor="father_name">Father Name</label>
               <input id="father_name" name="father_name" type="text" value={formData.father_name} onChange={handleChange} />
+            </div>
+            <div className="form-field">
+              <label htmlFor="mother_name">Mother Name</label>
+              <input id="mother_name" name="mother_name" type="text" value={formData.mother_name} onChange={handleChange} />
             </div>
             <div className="form-field">
               <label htmlFor="address">Address</label>
@@ -314,10 +327,6 @@ export default function FormEntry() {
             <div className="form-field">
               <label htmlFor="whatsapp">WhatsApp</label>
               <input id="whatsapp" name="whatsapp" type="tel" value={formData.whatsapp} onChange={handleChange} />
-            </div>
-            <div className="form-field">
-              <label htmlFor="email">E-Mail</label>
-              <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} />
             </div>
           </div>
         </div>

@@ -2,118 +2,38 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { firestoreService } from '../services/firestoreService';
 import type { Profile } from '../types';
+import { buildListPrintRows, type ListPrintRow } from '../utils/printListUtils';
 import './PrintAllList.css';
 import { downloadProfilesListDocx } from '../utils/docxExport';
 
-function formatDobForCell(dobRaw: string): string[] {
-  const s = (dobRaw || '').trim();
-  if (!s) return ['', ''];
-
-  // Supports common inputs like "05 Jun 1994", "05/06/1994", "1994-06-05"
-  const tryDate =
-    /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(`${s}T00:00:00`) : new Date(s);
-
-  if (!Number.isNaN(tryDate.getTime())) {
-    const day = tryDate.toLocaleString('en-GB', { day: '2-digit' });
-    const mon = tryDate.toLocaleString('en-GB', { month: 'short' });
-    const year = tryDate.toLocaleString('en-GB', { year: 'numeric' });
-    return [`${day} ${mon}`, year];
-  }
-
-  // Fallback: split last token as year if present.
-  const parts = s.split(/\s+/);
-  if (parts.length >= 2) {
-    const maybeYear = parts[parts.length - 1];
-    const first = parts.slice(0, -1).join(' ');
-    return [first, maybeYear];
-  }
-  return [s, ''];
-}
-
-function normalizeGender(g: Profile['gender'] | undefined): 'Male' | 'Female' | 'Unknown' {
-  const s = (g || '').toString().trim().toLowerCase();
-  if (s === 'male' || s === 'm' || s === 'boy' || s === 'groom') return 'Male';
-  if (s === 'female' || s === 'f' || s === 'girl' || s === 'bride') return 'Female';
-  return 'Unknown';
-}
-
-function computeAgeYears(dobRaw: string): string {
-  const s = (dobRaw || '').trim();
-  if (!s) return '';
-  const d = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(`${s}T00:00:00`) : new Date(s);
-  if (Number.isNaN(d.getTime())) return '';
-  const today = new Date();
-  let age = today.getFullYear() - d.getFullYear();
-  const m = today.getMonth() - d.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age -= 1;
-  if (age < 0 || age > 120) return '';
-  return String(age);
-}
-
-type DetailLine = { label: string; value: string };
-
-function formatDetails(profile: Profile, regNo: number): DetailLine[] {
-  const fullName = [profile.surname, profile.name].filter(Boolean).join(' ').trim();
-  const lines: DetailLine[] = [];
-
-  // Reg No should always come first (number-only)
-  lines.push({ label: 'Reg No', value: String(regNo) });
-  if (fullName) lines.push({ label: 'Name', value: fullName });
-
-  if (profile.sect?.trim()) lines.push({ label: 'Sect', value: profile.sect.trim() });
-  if (profile.subsect?.trim()) lines.push({ label: 'Sub-Sect', value: profile.subsect.trim() });
-  if (profile.gothram?.trim()) lines.push({ label: 'Gothram', value: profile.gothram.trim() });
-
-  if (profile.dob?.trim()) lines.push({ label: 'DOB', value: profile.dob.trim() });
-  if (profile.tob?.trim()) lines.push({ label: 'TOB', value: profile.tob.trim() });
-  if (profile.pob?.trim()) lines.push({ label: 'POB', value: profile.pob.trim() });
-
-  if (profile.star?.trim() || profile.padam?.trim()) {
-    const sp = [profile.star?.trim(), profile.padam?.trim()].filter(Boolean).join(' ');
-    if (sp) lines.push({ label: 'Star/Padam', value: sp });
-  }
-  if (profile.padam_colour?.trim()) lines.push({ label: 'Colour', value: profile.padam_colour.trim() });
-  if (profile.height_in_cm?.trim()) lines.push({ label: 'Height', value: profile.height_in_cm.trim() });
-  if (profile.marital_status?.trim()) lines.push({ label: 'Marital Status', value: profile.marital_status.trim() });
-
-  {
-    const age = computeAgeYears(profile.dob);
-    if (age) lines.push({ label: 'Age', value: age });
-  }
-
-  if (profile.qualification?.trim()) lines.push({ label: 'Educational Qualifications', value: profile.qualification.trim() });
-  {
-    const jobBits = [profile.designation, profile.organisation, profile.place_of_work, profile.country_of_work]
-      .map(v => (v || '').trim())
-      .filter(Boolean);
-    if (jobBits.length) lines.push({ label: 'Employment Details', value: jobBits.join(', ') });
-  }
-  if (profile.salary_per_anum?.trim()) lines.push({ label: 'Salary', value: profile.salary_per_anum.trim() });
-
-  if (profile.father_name?.trim()) lines.push({ label: "Father's Name", value: profile.father_name.trim() });
-
-  // Requirements (only include if any are present)
-  {
-    const reqBits = [
-      profile.required_qualification?.trim() ? `Qualification: ${profile.required_qualification.trim()}` : '',
-      profile.required_job?.trim() ? `Job: ${profile.required_job.trim()}` : '',
-      profile.required_marital_status?.trim() ? `Marital Status: ${profile.required_marital_status.trim()}` : '',
-    ].filter(Boolean);
-    if (reqBits.length) lines.push({ label: 'Requirements', value: reqBits.join('; ') });
-  }
-
-  if (profile.address?.trim()) lines.push({ label: 'Address', value: profile.address.trim() });
-
-  {
-    const contactBits = [
-      profile.mobile?.trim() ? `Mobile: ${profile.mobile.trim()}` : '',
-      profile.whatsapp?.trim() ? `WhatsApp: ${profile.whatsapp.trim()}` : '',
-      profile.email?.trim() ? `E-Mail: ${profile.email.trim()}` : '',
-    ].filter(Boolean);
-    if (contactBits.length) lines.push({ label: 'Contact', value: contactBits.join('; ') });
-  }
-
-  return lines;
+function renderSection(label: string, rows: ListPrintRow[]) {
+  if (!rows.length) return null;
+  return (
+    <>
+      <div className="grid-row section-row" role="row">
+        <div className="grid-cell section-cell" role="cell">{label}</div>
+      </div>
+      {rows.map((r) => (
+        <div key={r.key} className="grid-row" role="row">
+          <div className="grid-cell col-serial cell-serial" role="cell">{r.regNo}</div>
+          <div className="grid-cell col-dob cell-dob" role="cell">
+            <div className="dob-top">{r.dobTop}</div>
+            <div className="dob-bottom">{r.dobBottom}</div>
+          </div>
+          <div className="grid-cell col-details cell-details" role="cell">
+            <div className="details-text">
+              {r.details.map((line, i) => (
+                <span key={`${line.label}-${i}`}>
+                  <strong>{line.label}:</strong> {line.value}
+                  {i < r.details.length - 1 ? '. ' : '.'}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </>
+  );
 }
 
 export default function PrintAllList() {
@@ -139,38 +59,7 @@ export default function PrintAllList() {
     }
   };
 
-  const rows = useMemo(() => {
-    const enriched = profiles.map((p, idx) => {
-      const [dobTop, dobBottom] = formatDobForCell(p.dob);
-      return {
-        key: p.id ?? `${idx}`,
-        genderGroup: normalizeGender(p.gender),
-        dobTop,
-        dobBottom,
-        profile: p,
-      };
-    });
-
-    const men = enriched.filter(r => r.genderGroup === 'Male');
-    const women = enriched.filter(r => r.genderGroup === 'Female');
-    const unknown = enriched.filter(r => r.genderGroup === 'Unknown');
-
-    // Number-only Reg No in print order (Men -> Women -> Unknown)
-    const ordered = [...men, ...women, ...unknown].map((r, i) => {
-      const regNo = i + 1;
-      return {
-        ...r,
-        regNo,
-        details: formatDetails(r.profile, regNo),
-      };
-    });
-
-    return {
-      men: ordered.filter(r => r.genderGroup === 'Male'),
-      women: ordered.filter(r => r.genderGroup === 'Female'),
-      unknown: ordered.filter(r => r.genderGroup === 'Unknown'),
-    };
-  }, [profiles]);
+  const rows = useMemo(() => buildListPrintRows(profiles), [profiles]);
 
   const handlePrint = () => window.print();
 
@@ -245,80 +134,9 @@ export default function PrintAllList() {
             <div className="grid-cell col-details cell-details" role="columnheader">Details</div>
           </div>
 
-          {rows.men.length > 0 && (
-            <div className="grid-row section-row" role="row">
-              <div className="grid-cell section-cell" role="cell">MEN</div>
-            </div>
-          )}
-          {rows.men.map((r) => (
-            <div key={r.key} className="grid-row" role="row">
-              <div className="grid-cell col-serial cell-serial" role="cell">{r.regNo}</div>
-              <div className="grid-cell col-dob cell-dob" role="cell">
-                <div className="dob-top">{r.dobTop}</div>
-                <div className="dob-bottom">{r.dobBottom}</div>
-              </div>
-              <div className="grid-cell col-details cell-details" role="cell">
-                <div className="details-text">
-                  {r.details.map((line, i) => (
-                    <span key={`${line.label}-${i}`}>
-                      <strong>{line.label}:</strong> {line.value}
-                      {i < r.details.length - 1 ? '. ' : '.'}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {rows.women.length > 0 && (
-            <div className="grid-row section-row" role="row">
-              <div className="grid-cell section-cell" role="cell">WOMEN</div>
-            </div>
-          )}
-          {rows.women.map((r) => (
-            <div key={r.key} className="grid-row" role="row">
-              <div className="grid-cell col-serial cell-serial" role="cell">{r.regNo}</div>
-              <div className="grid-cell col-dob cell-dob" role="cell">
-                <div className="dob-top">{r.dobTop}</div>
-                <div className="dob-bottom">{r.dobBottom}</div>
-              </div>
-              <div className="grid-cell col-details cell-details" role="cell">
-                <div className="details-text">
-                  {r.details.map((line, i) => (
-                    <span key={`${line.label}-${i}`}>
-                      <strong>{line.label}:</strong> {line.value}
-                      {i < r.details.length - 1 ? '. ' : '.'}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {rows.unknown.length > 0 && (
-            <div className="grid-row section-row" role="row">
-              <div className="grid-cell section-cell" role="cell">UNKNOWN</div>
-            </div>
-          )}
-          {rows.unknown.map((r) => (
-            <div key={r.key} className="grid-row" role="row">
-              <div className="grid-cell col-serial cell-serial" role="cell">{r.regNo}</div>
-              <div className="grid-cell col-dob cell-dob" role="cell">
-                <div className="dob-top">{r.dobTop}</div>
-                <div className="dob-bottom">{r.dobBottom}</div>
-              </div>
-              <div className="grid-cell col-details cell-details" role="cell">
-                <div className="details-text">
-                  {r.details.map((line, i) => (
-                    <span key={`${line.label}-${i}`}>
-                      <strong>{line.label}:</strong> {line.value}
-                      {i < r.details.length - 1 ? '. ' : '.'}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
+          {renderSection('BRIDE', rows.bride)}
+          {renderSection('GROOM', rows.groom)}
+          {renderSection('DIVORCED', rows.divorced)}
         </div>
 
         <div className="print-footer-section">
@@ -328,4 +146,3 @@ export default function PrintAllList() {
     </div>
   );
 }
-

@@ -46,7 +46,7 @@ export default function EntriesList() {
     const filtered = profiles.filter(profile => {
       const value =
         searchField === 'regNo'
-          ? (profile.id || '').toLowerCase()
+          ? (profile.reg_no || '').toLowerCase()
           : (profile[searchField]?.toLowerCase() || '');
       return value.includes(term);
     });
@@ -161,7 +161,7 @@ export default function EntriesList() {
             <tbody>
               {filteredProfiles.map((profile) => (
                 <tr key={profile.id}>
-                  <td>{profile.id || '-'}</td>
+                  <td>{profile.reg_no || '-'}</td>
                   <td>{profile.surname ? `${profile.surname} ${profile.name}`.trim() : profile.name || '-'}</td>
                   <td>{profile.dob || '-'}</td>
                   <td>{profile.pob || '-'}</td>
